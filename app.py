@@ -252,7 +252,11 @@ def get_hot_questions():
         'question': faq.question
     } for faq in hot_questions]
 
-# 主页路由 - 公开访问
+# 根路由 - 重定向到门诊FAQ
+@app.route('/')
+def root():
+    return redirect(url_for('home'))
+
 @app.route(URL_PREFIX + '/')
 def home():
     faqs = FAQ.query.all()  # 获取所有FAQ数据
@@ -867,4 +871,7 @@ def import_excel():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port) 
+    app.run(host='0.0.0.0', port=port)
+
+# Vercel 需要这个导出
+application = app 
