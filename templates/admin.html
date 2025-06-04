@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - 门诊常见问题解答系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f5f5;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: var(--secondary-color);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #2c3e50);
+            color: white;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .action-buttons {
+            margin-bottom: 20px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .btn-action {
+            padding: 5px 10px;
+            margin: 0 5px;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), #2c3e50);
+            color: white;
+        }
+
+        .modal-title {
+            font-size: 20px;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(74,144,226,0.3);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #357abd;
+            border-color: #357abd;
+        }
+
+        .logout-btn {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .backup-btn {
+            margin-right: 10px;
+        }
+
+        .excel-btn {
+            margin-right: 10px;
+        }
+
+        #searchInput {
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .alert {
+            margin-bottom: 1rem;
+        }
+
+        .required-field::after {
+            content: "*";
+            color: red;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="content-container position-relative">
+            <h1>门诊常见问题管理后台</h1>
+            <a href="/mzfaq/logout" class="btn btn-outline-light btn-sm logout-btn">退出登录</a>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> 添加问题
+            </button>
+            <a href="/mzfaq/admin/backup" class="btn btn-info backup-btn">
+                <i class="fas fa-download"></i> 备份数据
+            </a>
+            <a href="/mzfaq/admin/export" class="btn btn-success excel-btn">
+                <i class="fas fa-file-excel"></i> 导出Excel
+            </a>
+            <button class="btn btn-warning" onclick="openImportModal()">
+                <i class="fas fa-file-import"></i> 导入Excel
+            </button>
+        </div>
+
+        <input type="text" id="searchInput" class="form-control" placeholder="搜索问题...">
+
+        <div class="table-container">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>问题</th>
+                        <th>答案</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="faqTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 添加/编辑问题模态框 -->
+    <div class="modal fade" id="editModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">编辑问题</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="faqForm" class="needs-validation" novalidate>
+                        <input type="hidden" id="faqId">
+                        <div class="mb-3">
+                            <label for="question" class="form-label required-field">问题</label>
+                            <input type="text" class="form-control" id="question" required
+                                   minlength="2" maxlength="500"
+                                   placeholder="请输入问题内容">
+                            <div class="invalid-feedback">问题不能为空，且长度必须在2-500字符之间</div>
+                            <div class="form-text">问题长度应在2-500字符之间</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="answer" class="form-label required-field">答案</label>
+                            <textarea class="form-control" id="answer" rows="4" required
+                                      minlength="2" placeholder="请输入答案内容"></textarea>
+                            <div class="invalid-feedback">答案不能为空，且长度必须大于2个字符</div>
+                            <div class="form-text">答案不能为空，建议详细说明</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveFAQ()" id="saveButton">
+                        <span class="button-text">保存</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入Excel模态框 -->
+    <div class="modal fade" id="importModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">导入Excel文件</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="importForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="excelFile" class="form-label required-field">选择Excel文件</label>
+                            <input type="file" class="form-control" id="excelFile" name="file" 
+                                   accept=".xlsx,.xls" required>
+                            <div class="invalid-feedback">请选择一个有效的Excel文件</div>
+                        </div>
+                        <div class="alert alert-info" role="alert">
+                            <h6 class="alert-heading">导入说明：</h6>
+                            <ol class="mb-0">
+                                <li>请使用Excel文件（.xlsx或.xls格式）</li>
+                                <li>Excel文件必须包含"问题"和"答案"两列</li>
+                                <li>每行数据的问题和答案都不能为空</li>
+                                <li>建议使用下载的模板填写数据</li>
+                            </ol>
+                        </div>
+                        <div class="text-center mb-3">
+                            <a href="/mzfaq/admin/template" class="btn btn-outline-primary">
+                                <i class="fas fa-download"></i> 下载Excel模板
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="importExcel()" id="importButton">
+                        <span class="button-text">导入</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let editModal;
+        let importModal;
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            importModal = new bootstrap.Modal(document.getElementById('importModal'));
+            loadFAQs();
+            
+            // 添加表单验证
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (form.checkValidity()) {
+                        if (form.id === 'faqForm') {
+                            saveFAQ();
+                        } else if (form.id === 'importForm') {
+                            importExcel();
+                        }
+                    }
+                    form.classList.add('was-validated');
+                });
+            });
+
+            // 文件选择事件处理
+            document.getElementById('excelFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const importButton = document.getElementById('importButton');
+                
+                if (file) {
+                    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                        importButton.disabled = false;
+                    } else {
+                        alert('请选择Excel文件（.xlsx或.xls格式）');
+                        e.target.value = '';
+                        importButton.disabled = true;
+                    }
+                } else {
+                    importButton.disabled = true;
+                }
+            });
+        });
+
+        // 设置按钮加载状态
+        function setButtonLoading(button, isLoading) {
+            const buttonText = button.querySelector('.button-text');
+            if (isLoading) {
+                button.disabled = true;
+                buttonText.innerHTML = '<span class="spinner-border" role="status" aria-hidden="true"></span> 处理中...';
+            } else {
+                button.disabled = false;
+                buttonText.textContent = button.getAttribute('data-original-text') || '保存';
+            }
+        }
+
+        // 加载所有FAQ数据
+        function loadFAQs() {
+            fetch('/mzfaq/api/faqs')
+                .then(handleResponse)
+                .then(faqs => {
+                    const tbody = document.getElementById('faqTableBody');
+                    tbody.innerHTML = faqs.map(faq => `
+                        <tr>
+                            <td>${faq.id}</td>
+                            <td>${escapeHtml(faq.question)}</td>
+                            <td>${escapeHtml(faq.answer)}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editFAQ(${faq.id})" title="编辑">
+                                    <i class="fas fa-edit"></i> 编辑
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteFAQ(${faq.id})" title="删除">
+                                    <i class="fas fa-trash"></i> 删除
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(handleError);
+        }
+
+        // 打开添加问题模态框
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '添加新问题';
+            document.getElementById('faqId').value = '';
+            document.getElementById('faqForm').reset();
+            document.getElementById('faqForm').classList.remove('was-validated');
+            editModal.show();
+        }
+
+        // 打开导入模态框
+        function openImportModal() {
+            document.getElementById('importForm').reset();
+            document.getElementById('importForm').classList.remove('was-validated');
+            document.getElementById('importButton').disabled = true;
+            importModal.show();
+        }
+
+        // 编辑问题
+        function editFAQ(id) {
+            const button = event.target.closest('button');
+            setButtonLoading(button, true);
+            
+            fetch(`/mzfaq/api/faqs/${id}`)
+                .then(handleResponse)
+                .then(data => {
+                    document.getElementById('modalTitle').textContent = '编辑问题';
+                    document.getElementById('faqId').value = data.id;
+                    document.getElementById('question').value = data.question;
+                    document.getElementById('answer').value = data.answer;
+                    editModal.show();
+                })
+                .catch(handleError)
+                .finally(() => {
+                    setButtonLoading(button, false);
+                });
+        }
+
+        // 保存FAQ
+        function saveFAQ() {
+            const form = document.getElementById('faqForm');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const id = document.getElementById('faqId').value;
+            const question = document.getElementById('question').value.trim();
+            const answer = document.getElementById('answer').value.trim();
+            const saveButton = document.getElementById('saveButton');
+
+            setButtonLoading(saveButton, true);
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/mzfaq/api/faqs/${id}` : '/mzfaq/api/faqs';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question, answer })
+            })
+            .then(handleResponse)
+            .then(data => {
+                alert(id ? '更新成功！' : '添加成功！');
+                editModal.hide();
+                loadFAQs();
+            })
+            .catch(handleError)
+            .finally(() => {
+                setButtonLoading(saveButton, false);
+            });
+        }
+
+        // 导入Excel
+        function importExcel() {
+            const form = document.getElementById('importForm');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const fileInput = document.getElementById('excelFile');
+            const importButton = document.getElementById('importButton');
+            const formData = new FormData();
+            
+            formData.append('file', fileInput.files[0]);
+            setButtonLoading(importButton, true);
+
+            fetch('/mzfaq/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(handleResponse)
+            .then(data => {
+                alert('导入成功！\n' + data.message);
+                importModal.hide();
+                loadFAQs();
+            })
+            .catch(handleError)
+            .finally(() => {
+                setButtonLoading(importButton, false);
+                form.reset();
+            });
+        }
+
+        // 删除问题
+        function deleteFAQ(id) {
+            if (confirm('确定要删除这个问题吗？此操作不可恢复。')) {
+                const button = event.target.closest('button');
+                setButtonLoading(button, true);
+
+                fetch(`/mzfaq/api/faqs/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(handleResponse)
+                .then(() => {
+                    loadFAQs();
+                })
+                .catch(handleError)
+                .finally(() => {
+                    setButtonLoading(button, false);
+                });
+            }
+        }
+
+        // 处理API响应
+        function handleResponse(response) {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.message || '操作失败');
+                });
+            }
+            return response.json();
+        }
+
+        // 处理错误
+        function handleError(error) {
+            console.error('Error:', error);
+            alert('操作失败：\n' + error.message);
+        }
+
+        // HTML转义
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // 搜索功能
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchText = e.target.value.toLowerCase();
+            const rows = document.getElementById('faqTableBody').getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const question = row.cells[1].textContent.toLowerCase();
+                const answer = row.cells[2].textContent.toLowerCase();
+                const match = question.includes(searchText) || answer.includes(searchText);
+                row.style.display = match ? '' : 'none';
+            }
+        });
+    </script>
+</body>
+</html> 

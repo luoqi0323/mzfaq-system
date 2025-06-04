@@ -1,0 +1,9 @@
+*.pyc
+__pycache__/
+.env
+*.db
+uploads/
+backups/
+.vercel
+.vscode/
+*.log 

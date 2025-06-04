@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="门诊常见问题解答系统 - 为患者提供快速、准确的门诊信息查询服务">
+    <meta name="keywords" content="门诊,医院,就医指南,预约挂号,医疗服务">
+    <meta name="author" content="门诊服务团队">
+    
+    <title>门诊常见问题解答系统</title>
+    
+    <!-- 网站图标 -->
+    <link rel="icon" href="/mzfaq/static/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/mzfaq/static/favicon.ico" type="image/x-icon">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- 自定义字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 图标 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- jQuery -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f5f5;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #2c3e50);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .admin-link {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .admin-link a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 15px;
+            border: 1px solid white;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-link a:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .left-section {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .right-section {
+            width: 300px;
+            flex-shrink: 0;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+        }
+
+        .keywords-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .keywords-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .keyword-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            margin: 4px;
+            background-color: #e8f0fe;
+            color: var(--primary-color);
+            border-radius: 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .keyword-tag:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .hot-questions {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .hot-questions h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .hot-question-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .hot-question-item:last-child {
+            border-bottom: none;
+        }
+
+        .hot-question-item:hover {
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .faq-list {
+            margin-top: 20px;
+        }
+
+        .faq-item {
+            background: white;
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .faq-question {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .faq-answer {
+            color: #34495e;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .right-section {
+                width: 100%;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>门诊常见问题解答系统</h1>
+        <div class="admin-link">
+            <a href="/mzfaq/login">管理入口</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="left-section">
+                <div class="search-container">
+                    <input type="text" class="search-input" id="searchInput" placeholder="请输入关键词搜索...">
+                </div>
+                <div class="keywords-container">
+                    <div class="keywords-title">热门关键词</div>
+                    <div id="keywordCloud"></div>
+                </div>
+                <div class="faq-list" id="faqList"></div>
+            </div>
+
+            <div class="right-section">
+                <div class="hot-questions">
+                    <h2>热门问题</h2>
+                    <div id="hotQuestionsList">
+                        {% for question in hot_questions %}
+                        <div class="hot-question-item" onclick="searchQuestion('{{ question.question }}')">
+                            {{ question.question }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allFAQs = [];
+        const API_PREFIX = '/mzfaq';
+
+        // 获取所有FAQ数据
+        fetch(API_PREFIX + '/api/faqs')
+            .then(response => response.json())
+            .then(data => {
+                allFAQs = data;
+                displayFAQs(allFAQs);
+            });
+
+        // 获取并显示关键词
+        fetch(API_PREFIX + '/api/faqs/keywords')
+            .then(response => response.json())
+            .then(keywords => {
+                const keywordCloud = document.getElementById('keywordCloud');
+                keywords.forEach(keyword => {
+                    const tag = document.createElement('span');
+                    tag.className = 'keyword-tag';
+                    tag.textContent = keyword;
+                    tag.onclick = () => searchKeyword(keyword);
+                    keywordCloud.appendChild(tag);
+                });
+            });
+
+        // 搜索功能
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchText = e.target.value.toLowerCase();
+            const filteredFAQs = filterFAQs(searchText);
+            displayFAQs(filteredFAQs, searchText);
+        });
+
+        // 关键词搜索
+        function searchKeyword(keyword) {
+            document.getElementById('searchInput').value = keyword;
+            const filteredFAQs = filterFAQs(keyword);
+            displayFAQs(filteredFAQs, keyword);
+        }
+
+        // 问题搜索
+        function searchQuestion(question) {
+            document.getElementById('searchInput').value = question;
+            const filteredFAQs = filterFAQs(question);
+            displayFAQs(filteredFAQs, question);
+        }
+
+        // 过滤FAQ
+        function filterFAQs(searchText) {
+            if (!searchText) return allFAQs;
+            return allFAQs.filter(faq => 
+                faq.question.toLowerCase().includes(searchText.toLowerCase()) || 
+                faq.answer.toLowerCase().includes(searchText.toLowerCase())
+            );
+        }
+
+        // 显示FAQ列表
+        function displayFAQs(faqs, searchText = '') {
+            const faqList = document.getElementById('faqList');
+            
+            if (faqs.length === 0) {
+                faqList.innerHTML = '<div style="text-align: center; padding: 20px;">没有找到匹配的问题</div>';
+                return;
+            }
+
+            faqList.innerHTML = faqs.map(faq => {
+                let question = faq.question;
+                let answer = faq.answer;
+
+                if (searchText) {
+                    const regex = new RegExp(searchText, 'gi');
+                    question = question.replace(regex, match => `<span class="highlight">${match}</span>`);
+                    answer = answer.replace(regex, match => `<span class="highlight">${match}</span>`);
+                }
+
+                return `
+                    <div class="faq-item">
+                        <div class="faq-question">问：${question}</div>
+                        <div class="faq-answer">答：${answer}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html> 
